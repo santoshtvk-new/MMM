@@ -1,4 +1,4 @@
-# MMM Secure | Salary & Investment Manager
+# MMM (Monthly Money Management) | Secure Salary & Investment Manager
 
 A premium, all-in-one financial management web application built with **Flask**, **SQLAlchemy**, and **AES-256 Encryption**. Designed for mobile and desktop with a security-first approach.
 
@@ -44,4 +44,4 @@ Visit `http://127.0.0.1:5000` to start.
 The application is optimized for mobile with a bottom-navigation bar, touch-friendly inputs, and a simplified dashboard view.
 
 ---
-Built with ❤️ by Antigravity
+Built with ❤️ by Pynfinity - Santoshtvk

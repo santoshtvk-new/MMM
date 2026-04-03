@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMM | Secure Financial Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Lucide Icons (Optional for better visual) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="container">
+        {% if session.get('user_id') %}
+        <header>
+            <div class="logo">MMM Secure</div>
+            <nav class="nav-links">
+                <a href="{{ url_for('dashboard') }}"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
+                <a href="{{ url_for('add_transaction') }}"><i data-lucide="plus-circle"></i> <span>Add Transaction</span></a>
+                <a href="{{ url_for('add_account') }}"><i data-lucide="wallet"></i> <span>Add Account</span></a>
+                <a href="{{ url_for('logout') }}"><i data-lucide="lock"></i> <span>Lock</span></a>
+            </nav>
+        </header>
+        {% endif %}
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert-box glass" style="border-left-color: {% if category == 'success' %}var(--emerald-green){% else %}var(--error-red){% endif %}; margin-bottom: 20px;">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script>
+      lucide.createIcons();
+    </script>
+</body>
+</html>

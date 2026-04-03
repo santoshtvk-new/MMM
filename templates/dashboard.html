@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 style="margin-bottom: 30px;">Your Financial Dashboard</h2>
+
+    <div class="dashboard-grid">
+        <!-- Total Wealth Card -->
+        <div class="card glass">
+            <div class="card-title">TOTAL WEALTH (CONSOLIDATED)</div>
+            <div class="card-value">₹{{ "{:,.2f}".format(total_wealth) }}</div>
+        </div>
+
+        <!-- Alerts & Alerts -->
+        {% if alerts %}
+        <div class="card glass" style="border-left: 4px solid var(--error-red);">
+            <div class="card-title" style="color: var(--error-red);">DEDUCTION ALERTS (DUE TOMORROW)</div>
+            {% for alert in alerts %}
+            <p style="font-size: 0.9rem; margin-top: 10px;">
+                <strong>{{ alert.emi }}</strong> requires ₹{{ "{:,.2f}".format(alert.amount) }} from <em>{{ alert.account }}</em>. 
+                Shortage: <span style="color: var(--error-red);">₹{{ "{:,.2f}".format(alert.shortage) }}</span>
+            </p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Intelligent Suggestions -->
+        {% if suggestions %}
+        <div class="card glass" style="border-left: 4px solid var(--emerald-green);">
+            <div class="card-title" style="color: var(--emerald-green);">INTELLIGENT SUGGESTIONS</div>
+            {% for suggestion in suggestions %}
+            <p style="font-size: 0.9rem; margin-top: 10px;">
+                {{ suggestion }}
+            </p>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Accounts Section -->
+    <div style="margin-top: 40px; display: flex; justify-content: space-between; align-items: center;">
+        <h3>My Bank Accounts</h3>
+        <a href="{{ url_for('add_account') }}" style="color: var(--emerald-green); text-decoration: none; font-size: 0.9rem;">+ Add New</a>
+    </div>
+    
+    <div class="dashboard-grid" style="margin-top: 15px;">
+        {% for account in accounts %}
+        <div class="card glass">
+            <div class="card-title">{{ account.bank_name }} | {{ account.account_type }}</div>
+            <div style="font-size: 1.1rem; font-weight: 600;">{{ account.name }}</div>
+            <div class="card-value" style="font-size: 1.5rem; margin-top: 10px;">₹{{ "{:,.2f}".format(account.balance) }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="transaction-list">
+        <h3>Recent Secure Transactions</h3>
+        <div class="glass" style="padding: 20px; border-radius: 12px; margin-top: 15px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>DATE</th>
+                        <th>DESCRIPTION</th>
+                        <th>CATEGORY</th>
+                        <th>ACCOUNT</th>
+                        <th>AMOUNT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in recent_transactions %}
+                    <tr class="{% if t.is_transfer %}transfer{% endif %}">
+                        <td>{{ t.date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ t.description }}</td>
+                        <td>{{ t.category or "General" }}</td>
+                        <td>{{ Account.query.get(t.account_id).decrypt_all(session.get('decryption_key')).name }}</td>
+                        <td class="{{ t.type }}">
+                            {% if t.type == 'credit' %}+{% else %}-{% endif %}
+                            ₹{{ "{:,.2f}".format(t.amount) }}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-gray);">No transactions found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Data Management -->
+    <div style="margin-top: 50px; padding: 20px;" class="glass">
+        <h4 style="margin-bottom: 20px;">Secure Data Management</h4>
+        <div style="display: flex; gap: 20px;">
+            <a href="{{ url_for('download_data') }}" style="color: var(--emerald-green); text-decoration: none; border: 1px solid var(--emerald-green); padding: 10px 20px; border-radius: 8px;">Download My Encrypted Data (JSON)</a>
+            <form action="{{ url_for('wipe_data') }}" method="POST" onsubmit="return confirm('WARNING: This will permanently delete ALL your records from our server. Proceed?')">
+                <button type="submit" style="background: transparent; border: 1px solid var(--error-red); color: var(--error-red); padding: 10px 20px;">Permanent Self-Destruct / Delete My Records</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

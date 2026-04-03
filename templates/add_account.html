@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-container glass">
+    <h3 style="margin-bottom: 25px;">Secure New Bank Account</h3>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label>Nickname (e.g. My Savings)</label>
+            <input type="text" name="name" required placeholder="Account Nickname">
+        </div>
+        <div class="form-group">
+            <label>Bank Name (e.g. HDFC, SBI)</label>
+            <input type="text" name="bank_name" required placeholder="Bank Name">
+        </div>
+        <div class="form-group">
+            <label>Account Type</label>
+            <select name="account_type" required>
+                <option value="Savings">Savings</option>
+                <option value="Current">Current</option>
+                <option value="Credit Card">Credit Card</option>
+                <option value="Mutual Fund">Mutual Fund (SIP Account)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Initial Balance (₹)</label>
+            <input type="number" step="0.01" name="initial_balance" required placeholder="Current Balance">
+        </div>
+        
+        <button type="submit">Encrypt & Add Account</button>
+    </form>
+</div>
+{% endblock %}

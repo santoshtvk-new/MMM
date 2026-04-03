@@ -1,0 +1,467 @@
+/* Custom CSS for Wealth Manager - Mobile-First Design */
+
+/* Root variables for consistency with Bootstrap dark theme */
+:root {
+    --wealth-primary: var(--bs-primary);
+    --wealth-success: var(--bs-success);
+    --wealth-danger: var(--bs-danger);
+    --wealth-warning: var(--bs-warning);
+    --wealth-info: var(--bs-info);
+    --wealth-dark: var(--bs-dark);
+    --wealth-light: var(--bs-light);
+    --wealth-secondary: var(--bs-secondary);
+}
+
+/* Mobile-first responsive design improvements */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    /* Stack cards vertically on mobile */
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    /* Adjust font sizes for mobile */
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.25rem; }
+    h4 { font-size: 1.1rem; }
+    h5 { font-size: 1rem; }
+    
+    /* Mobile-friendly buttons */
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+    }
+    
+    /* Responsive tables */
+    .table-responsive {
+        font-size: 0.85rem;
+    }
+    
+    /* Modal adjustments for mobile */
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    /* Navigation improvements */
+    .navbar-nav .nav-link {
+        padding: 0.75rem 1rem;
+    }
+    
+    /* Form improvements */
+    .form-control, .form-select {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
+
+/* Transfer transaction styling - strikethrough for account transfers */
+.transfer-row {
+    background-color: rgba(var(--bs-secondary-rgb), 0.1);
+    opacity: 0.7;
+}
+
+.transfer-row td {
+    position: relative;
+}
+
+.transfer-row .text-decoration-line-through {
+    text-decoration: line-through !important;
+    color: var(--bs-secondary) !important;
+}
+
+/* Transfer badge styling */
+.transfer-row .badge {
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+
+/* Account balance styling */
+.balance-positive {
+    color: var(--wealth-success) !important;
+}
+
+.balance-negative {
+    color: var(--wealth-danger) !important;
+}
+
+.balance-warning {
+    color: var(--wealth-warning) !important;
+}
+
+/* Account cards styling */
+.account-card {
+    border-left: 4px solid var(--wealth-primary);
+    transition: all 0.3s ease;
+}
+
+.account-card:hover {
+    border-left-color: var(--wealth-success);
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.15);
+}
+
+.account-card.savings {
+    border-left-color: var(--wealth-success);
+}
+
+.account-card.current {
+    border-left-color: var(--wealth-info);
+}
+
+.account-card.credit_card {
+    border-left-color: var(--wealth-warning);
+}
+
+/* Alert styling enhancements */
+.alert-card {
+    border-left: 5px solid var(--wealth-danger);
+    animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+    0% { border-left-color: var(--wealth-danger); }
+    50% { border-left-color: rgba(var(--bs-danger-rgb), 0.5); }
+    100% { border-left-color: var(--wealth-danger); }
+}
+
+/* EMI and expense category colors */
+.emi-loan { color: var(--wealth-warning); }
+.emi-credit-card { color: var(--wealth-danger); }
+.emi-mutual-fund { color: var(--wealth-success); }
+
+.expense-rent { color: var(--wealth-primary); }
+.expense-grocery { color: var(--wealth-success); }
+.expense-transport { color: var(--wealth-info); }
+.expense-other { color: var(--wealth-secondary); }
+
+/* Dashboard metric cards */
+.metric-card {
+    border: none;
+    border-radius: 0.5rem;
+    transition: transform 0.2s ease-in-out;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Chart container improvements */
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin: 1rem 0;
+}
+
+@media (max-width: 768px) {
+    .chart-container {
+        height: 250px;
+    }
+}
+
+/* Loading states */
+.loading-skeleton {
+    background: linear-gradient(90deg, transparent, rgba(var(--bs-light-rgb), 0.2), transparent);
+    background-size: 200px 100%;
+    background-repeat: no-repeat;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+}
+
+/* Form enhancements */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--wealth-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: var(--wealth-danger);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-danger-rgb), 0.25);
+}
+
+.form-control.is-valid,
+.form-select.is-valid {
+    border-color: var(--wealth-success);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-success-rgb), 0.25);
+}
+
+/* Input group enhancements */
+.input-group-text {
+    background-color: var(--bs-dark);
+    border-color: var(--bs-secondary);
+    color: var(--bs-light);
+}
+
+/* Button enhancements */
+.btn-group-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+@media (min-width: 576px) {
+    .btn-group-mobile {
+        flex-direction: row;
+    }
+}
+
+/* Quick action buttons */
+.quick-action-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.quick-action-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 768px) {
+    .quick-action-btn {
+        bottom: 15px;
+        right: 15px;
+        width: 48px;
+        height: 48px;
+    }
+}
+
+/* Notification improvements */
+.toast {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Accessibility improvements */
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Focus indicators for keyboard navigation */
+.btn:focus,
+.form-control:focus,
+.form-select:focus,
+.nav-link:focus {
+    outline: 2px solid var(--wealth-primary);
+    outline-offset: 2px;
+}
+
+/* Dark mode specific adjustments */
+[data-bs-theme="dark"] {
+    /* Ensure proper contrast for financial data */
+    .text-success { color: #198754 !important; }
+    .text-danger { color: #dc3545 !important; }
+    .text-warning { color: #ffc107 !important; }
+    .text-info { color: #0dcaf0 !important; }
+}
+
+/* Amount display styling */
+.amount-large {
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+}
+
+.amount-medium {
+    font-size: 1.2rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.amount-small {
+    font-size: 1rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Currency symbol styling */
+.currency-symbol {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+/* Progress indicators */
+.progress-thin {
+    height: 4px;
+}
+
+.progress-medium {
+    height: 8px;
+}
+
+/* Status indicators */
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.status-active { background-color: var(--wealth-success); }
+.status-pending { background-color: var(--wealth-warning); }
+.status-overdue { background-color: var(--wealth-danger); }
+.status-inactive { background-color: var(--wealth-secondary); }
+
+/* Responsive grid improvements */
+.responsive-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 576px) {
+    .responsive-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 992px) {
+    .responsive-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (min-width: 1200px) {
+    .responsive-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* Animation classes */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in-right {
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+/* Print styles */
+@media print {
+    .no-print { display: none !important; }
+    
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+    
+    .btn { display: none !important; }
+    
+    body {
+        font-size: 12pt;
+        line-height: 1.4;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .card {
+        border: 2px solid var(--bs-border-color);
+    }
+    
+    .btn {
+        border-width: 2px;
+    }
+    
+    .form-control,
+    .form-select {
+        border-width: 2px;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Utility classes for spacing and layout */
+.gap-05 { gap: 0.25rem; }
+.gap-075 { gap: 0.375rem; }
+.gap-15 { gap: 0.75rem; }
+
+.p-15 { padding: 0.75rem; }
+.m-15 { margin: 0.75rem; }
+.px-15 { padding-left: 0.75rem; padding-right: 0.75rem; }
+.py-15 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+
+/* Financial data table styling */
+.financial-table {
+    font-variant-numeric: tabular-nums;
+}
+
+.financial-table th {
+    position: sticky;
+    top: 0;
+    background-color: var(--bs-dark);
+    z-index: 10;
+}
+
+.financial-table td.amount {
+    text-align: right;
+    font-weight: 500;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 576px) {
+    /* Hide less important columns on very small screens */
+    .d-none-xs { display: none !important; }
+    
+    /* Larger touch targets */
+    .btn-touch {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Sticky bottom navigation */
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: var(--bs-dark);
+        border-top: 1px solid var(--bs-border-color);
+        z-index: 1000;
+        padding: 0.5rem;
+    }
+    
+    /* Account for bottom navigation */
+    .main-content {
+        padding-bottom: 80px;
+    }
+}

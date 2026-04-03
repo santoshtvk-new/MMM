@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+
+{% block title %}Alerts - Wealth Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i data-feather="bell" class="me-2"></i>
+                Financial Alerts
+            </h2>
+            <button class="btn btn-outline-secondary" onclick="location.reload()">
+                <i data-feather="refresh-cw" class="me-1"></i>Refresh Alerts
+            </button>
+        </div>
+    </div>
+
+    {% if alerts %}
+    <!-- Critical Alerts Summary -->
+    <div class="col-12 mb-4">
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <i data-feather="alert-triangle" class="me-3" style="width: 2rem; height: 2rem;"></i>
+            <div>
+                <h5 class="alert-heading mb-1">Critical Alerts Detected</h5>
+                <p class="mb-0">You have {{ alerts|length }} critical alert(s) that require immediate attention to avoid financial issues.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Cards -->
+    {% for alert in alerts %}
+    <div class="col-lg-6 mb-4">
+        <div class="card border-danger alert-card">
+            <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i data-feather="alert-circle" class="me-2"></i>
+                    Insufficient Balance Alert
+                </h6>
+                <span class="badge bg-light text-danger">{{ alert.severity.title() }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <h5 class="card-title text-danger">{{ alert.account_name }}</h5>
+                        <h6 class="card-subtitle text-muted">{{ alert.emi_name }}</h6>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <small class="text-muted d-block">Required Amount</small>
+                        <strong class="text-danger">₹{{ "{:,.2f}".format(alert.required_amount) }}</strong>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <small class="text-muted d-block">Current Balance</small>
+                        <strong class="{% if alert.current_balance < 0 %}text-danger{% else %}text-warning{% endif %}">
+                            ₹{{ "{:,.2f}".format(alert.current_balance) }}
+                        </strong>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <small class="text-muted d-block">Shortage</small>
+                        <strong class="text-danger">₹{{ "{:,.2f}".format(alert.shortage) }}</strong>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <small class="text-muted d-block">Due Date</small>
+                        <strong>{{ alert.due_date }}</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-primary btn-sm" onclick="showTransferModal('{{ alert.account_name }}', {{ alert.shortage }})">
+                        <i data-feather="arrow-right" class="me-1"></i>Transfer Funds
+                    </button>
+                    <a href="{{ url_for('add_transaction') }}" class="btn btn-outline-success btn-sm">
+                        <i data-feather="plus" class="me-1"></i>Add Income
+                    </a>
+                    <button class="btn btn-outline-info btn-sm" onclick="showSuggestions('{{ alert.account_name }}', {{ alert.shortage }})">
+                        <i data-feather="lightbulb" class="me-1"></i>Get Suggestions
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Alert Statistics -->
+    <div class="col-12 mt-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i data-feather="bar-chart" class="me-2"></i>
+                    Alert Summary
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="mb-2">
+                            <i data-feather="alert-triangle" class="text-danger mb-1" style="width: 2rem; height: 2rem;"></i>
+                            <h4 class="text-danger">{{ alerts|length }}</h4>
+                            <small class="text-muted">Critical Alerts</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-2">
+                            <i data-feather="calendar" class="text-warning mb-1" style="width: 2rem; height: 2rem;"></i>
+                            <h4 class="text-warning">{{ alerts|selectattr('due_date')|list|length }}</h4>
+                            <small class="text-muted">Due Tomorrow</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-2">
+                            <i data-feather="dollar-sign" class="text-info mb-1" style="width: 2rem; height: 2rem;"></i>
+                            <h4 class="text-info">₹{{ "{:,.0f}".format(alerts|sum(attribute='shortage')) }}</h4>
+                            <small class="text-muted">Total Shortage</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-2">
+                            <i data-feather="clock" class="text-secondary mb-1" style="width: 2rem; height: 2rem;"></i>
+                            <h4 class="text-secondary">24hrs</h4>
+                            <small class="text-muted">Time to Act</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- No Alerts -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i data-feather="check-circle" style="width: 4rem; height: 4rem;" class="text-success mb-4"></i>
+                <h4 class="text-success mb-3">All Clear!</h4>
+                <p class="text-muted mb-4">
+                    No critical alerts at the moment. Your accounts have sufficient balance for upcoming EMI deductions.
+                </p>
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="alert alert-info">
+                            <i data-feather="info" class="me-2"></i>
+                            <strong>Stay Prepared:</strong> We'll notify you 24 hours before any EMI deduction if your account balance is insufficient.
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+                    <i data-feather="home" class="me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Transfer Funds Modal -->
+<div class="modal fade" id="transferModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i data-feather="arrow-right" class="me-2"></i>Quick Fund Transfer
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i data-feather="info" class="me-2"></i>
+                    Transfer funds to <strong id="transferAccount">-</strong> to cover the shortage of <strong id="transferAmount">-</strong>
+                </div>
+                <div class="text-center">
+                    <a href="{{ url_for('add_transaction') }}" class="btn btn-primary">
+                        <i data-feather="plus" class="me-2"></i>Add Transfer Transaction
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Suggestions Modal -->
+<div class="modal fade" id="suggestionsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i data-feather="lightbulb" class="me-2"></i>Smart Suggestions
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="suggestionContent">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading suggestions...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{{ url_for('suggestions') }}" class="btn btn-primary">View All Suggestions</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showTransferModal(accountName, shortage) {
+    document.getElementById('transferAccount').textContent = accountName;
+    document.getElementById('transferAmount').textContent = '₹' + shortage.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    
+    const modal = new bootstrap.Modal(document.getElementById('transferModal'));
+    modal.show();
+}
+
+function showSuggestions(accountName, shortage) {
+    const modal = new bootstrap.Modal(document.getElementById('suggestionsModal'));
+    const content = document.getElementById('suggestionContent');
+    
+    // Show loading
+    content.innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading suggestions...</span>
+            </div>
+        </div>
+    `;
+    
+    modal.show();
+    
+    // Generate suggestions based on the shortage
+    setTimeout(() => {
+        const suggestions = generateSmartSuggestions(accountName, shortage);
+        content.innerHTML = suggestions;
+        feather.replace();
+    }, 1000);
+}
+
+function generateSmartSuggestions(accountName, shortage) {
+    const suggestions = [
+        {
+            icon: 'arrow-right',
+            title: 'Transfer from Other Accounts',
+            description: `Transfer ₹${shortage.toLocaleString('en-IN', {minimumFractionDigits: 2})} from your other accounts to ${accountName}`,
+            priority: 'high',
+            action: 'Immediate'
+        },
+        {
+            icon: 'credit-card',
+            title: 'Use Credit Card',
+            description: 'Pay the EMI using credit card if account balance is insufficient',
+            priority: 'medium',
+            action: 'Alternative'
+        },
+        {
+            icon: 'phone',
+            title: 'Contact Bank',
+            description: 'Call your bank to discuss payment options or request a grace period',
+            priority: 'medium',
+            action: 'Backup Plan'
+        },
+        {
+            icon: 'calendar',
+            title: 'Set Up Auto-Transfer',
+            description: 'Set up automatic transfers from savings to prevent future shortages',
+            priority: 'low',
+            action: 'Future Prevention'
+        }
+    ];
+    
+    let html = '<div class="list-group list-group-flush">';
+    
+    suggestions.forEach(suggestion => {
+        const priorityClass = suggestion.priority === 'high' ? 'success' : 
+                             suggestion.priority === 'medium' ? 'warning' : 'info';
+        
+        html += `
+            <div class="list-group-item d-flex">
+                <div class="me-3">
+                    <i data-feather="${suggestion.icon}" class="text-${priorityClass}"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h6 class="mb-1">${suggestion.title}</h6>
+                    <p class="mb-1 text-muted">${suggestion.description}</p>
+                    <small>
+                        <span class="badge bg-${priorityClass}">${suggestion.action}</span>
+                    </small>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    return html;
+}
+
+// Auto-refresh alerts every 5 minutes
+setInterval(function() {
+    // Check if user is still on the alerts page
+    if (window.location.pathname === '/alerts') {
+        fetch('/alerts')
+            .then(response => response.text())
+            .then(html => {
+                // Update alert count in navigation
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newAlertCards = doc.querySelectorAll('.alert-card');
+                const currentAlertCards = document.querySelectorAll('.alert-card');
+                
+                // Only reload if alert count changed
+                if (newAlertCards.length !== currentAlertCards.length) {
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error checking alerts:', error));
+    }
+}, 300000); // 5 minutes
+
+// Show toast notification for new alerts
+function showAlertNotification(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast align-items-center text-white bg-danger border-0 position-fixed top-0 end-0 m-3';
+    toast.style.zIndex = '1051';
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <i data-feather="alert-triangle" class="me-2"></i>
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    feather.replace();
+    
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    // Remove toast element after it's hidden
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    });
+}
+</script>
+{% endblock %}

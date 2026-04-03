@@ -1,0 +1,199 @@
+:root {
+    --primary-navy: #0a192f;
+    --secondary-navy: #112240;
+    --emerald-green: #10b981;
+    --emerald-light: #34d399;
+    --text-white: #e6f1ff;
+    --text-gray: #8892b0;
+    --glass-bg: rgba(17, 34, 64, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --error-red: #ef4444;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: var(--primary-navy);
+    color: var(--text-white);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Glassmorphism utility */
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+/* Header & Nav */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--emerald-green);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-links a {
+    color: var(--text-white);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: 0.3s;
+}
+
+.nav-links a:hover {
+    color: var(--emerald-green);
+}
+
+/* Dashboard Cards */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.card {
+    padding: 20px;
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.card-title {
+    color: var(--text-gray);
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--emerald-green);
+}
+
+/* Transactions Table */
+.transaction-list {
+    margin-top: 30px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th {
+    text-align: left;
+    color: var(--text-gray);
+    font-size: 0.8rem;
+    padding-bottom: 10px;
+}
+
+td {
+    padding: 15px 0;
+    border-top: 1px solid var(--glass-border);
+    font-size: 0.9rem;
+}
+
+.credit { color: var(--emerald-green); }
+.debit { color: var(--error-red); }
+.transfer { text-decoration: line-through; opacity: 0.6; }
+
+/* Forms */
+.form-container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 30px;
+}
+
+.form-group { margin-bottom: 20px; }
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-gray);
+    font-size: 0.9rem;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 12px;
+    background: var(--secondary-navy);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: var(--text-white);
+    outline: none;
+}
+
+input:focus { border-color: var(--emerald-green); }
+
+button {
+    width: 100%;
+    padding: 15px;
+    background: var(--emerald-green);
+    border: none;
+    border-radius: 8px;
+    color: var(--primary-navy);
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover { background: var(--emerald-light); }
+
+/* Alerts Section */
+.alert-box {
+    margin-top: 20px;
+    padding: 15px;
+    border-left: 4px solid var(--error-red);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* Bottom Nav (Mobile) */
+@media (max-width: 768px) {
+    .nav-links {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: var(--secondary-navy);
+        padding: 15px;
+        justify-content: space-around;
+        z-index: 1000;
+    }
+    
+    .nav-links a span { display: none; }
+    header { padding: 10px 0; }
+    .container { padding-bottom: 80px; }
+}

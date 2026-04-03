@@ -1,0 +1,12 @@
+__pycache__
+.idea
+.venv
+.env
+mmm_secure.db
+*.pyc
+instance/mmm_secure.db
+main.py
+passenger_wsgi.py
+GUIDE.md
+**.zip
+**/*.zip

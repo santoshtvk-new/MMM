@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-container glass">
+    <h3 style="margin-bottom: 25px;">Mandatory Expense Tracking</h3>
+    <p style="color: var(--text-gray); font-size: 0.8rem; margin-bottom: 20px;">
+        Add fixed monthly expenses like Rent, Groceries, or Transport.
+    </p>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label>Linked Account</label>
+            <select name="account_id" required>
+                {% for acc in accounts %}
+                <option value="{{ acc.id }}">{{ acc.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Expense Name (e.g. House Rent)</label>
+            <input type="text" name="name" required placeholder="Name">
+        </div>
+
+        <div class="form-group">
+            <label>Amount (₹)</label>
+            <input type="number" step="0.01" name="amount" required placeholder="Amount">
+        </div>
+
+        <div class="form-group">
+            <label>Category / Type</label>
+            <select name="type" required>
+                <option value="Rent">Rent</option>
+                <option value="Grocery">Grocery</option>
+                <option value="Transport">Transport</option>
+                <option value="Electricity/Bills">Electricity/Bills</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Due Date (Optional - Day of Month)</label>
+            <input type="number" min="1" max="31" name="due_date" placeholder="Day (e.g. 1)">
+        </div>
+        
+        <button type="submit">Encrypt & Record Expense</button>
+    </form>
+</div>
+{% endblock %}

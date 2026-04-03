@@ -1,0 +1,470 @@
+{% extends "base.html" %}
+
+{% block title %}Suggestions - Wealth Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i data-feather="lightbulb" class="me-2"></i>
+                Smart Financial Suggestions
+            </h2>
+            <button class="btn btn-outline-secondary" onclick="location.reload()">
+                <i data-feather="refresh-cw" class="me-1"></i>Refresh Suggestions
+            </button>
+        </div>
+    </div>
+
+    {% if suggestions %}
+    <!-- Suggestions by Priority -->
+    {% set critical_suggestions = suggestions | selectattr('priority', 'equalto', 'critical') | list %}
+    {% set high_suggestions = suggestions | selectattr('priority', 'equalto', 'high') | list %}
+    {% set medium_suggestions = suggestions | selectattr('priority', 'equalto', 'medium') | list %}
+    {% set low_suggestions = suggestions | selectattr('priority', 'equalto', 'low') | list %}
+
+    {% if critical_suggestions %}
+    <div class="col-12 mb-4">
+        <div class="alert alert-danger">
+            <h5 class="alert-heading">
+                <i data-feather="alert-triangle" class="me-2"></i>
+                Critical Actions Required
+            </h5>
+            <p class="mb-0">These suggestions require immediate attention to maintain financial health.</p>
+        </div>
+    </div>
+
+    {% for suggestion in critical_suggestions %}
+    <div class="col-lg-6 mb-4">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i data-feather="alert-circle" class="me-2"></i>
+                    {{ suggestion.title }}
+                </h6>
+                <span class="badge bg-light text-danger">Critical</span>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ suggestion.description }}</p>
+                <div class="alert alert-light border-danger">
+                    <i data-feather="arrow-right" class="me-2"></i>
+                    <strong>Action:</strong> {{ suggestion.action }}
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex gap-2">
+                    {% if suggestion.type == 'budget_deficit' %}
+                    <a href="{{ url_for('add_transaction') }}" class="btn btn-primary btn-sm">
+                        <i data-feather="plus" class="me-1"></i>Add Income
+                    </a>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm">
+                        <i data-feather="pie-chart" class="me-1"></i>Review Budget
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if high_suggestions %}
+    <div class="col-12 mb-3">
+        <h4 class="text-warning">
+            <i data-feather="trending-up" class="me-2"></i>
+            High Priority Recommendations
+        </h4>
+        <hr>
+    </div>
+
+    {% for suggestion in high_suggestions %}
+    <div class="col-lg-6 mb-4">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    {% if suggestion.type == 'loan_prepayment' %}
+                    <i data-feather="dollar-sign" class="me-2"></i>
+                    {% elif suggestion.type == 'emergency_fund' %}
+                    <i data-feather="shield" class="me-2"></i>
+                    {% else %}
+                    <i data-feather="star" class="me-2"></i>
+                    {% endif %}
+                    {{ suggestion.title }}
+                </h6>
+                <span class="badge bg-dark">High Priority</span>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ suggestion.description }}</p>
+                <div class="alert alert-warning">
+                    <i data-feather="target" class="me-2"></i>
+                    <strong>Recommendation:</strong> {{ suggestion.action }}
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex gap-2">
+                    {% if suggestion.type == 'loan_prepayment' %}
+                    <a href="{{ url_for('add_transaction') }}" class="btn btn-warning btn-sm">
+                        <i data-feather="credit-card" class="me-1"></i>Make Payment
+                    </a>
+                    {% elif suggestion.type == 'emergency_fund' %}
+                    <a href="{{ url_for('add_transaction') }}" class="btn btn-warning btn-sm">
+                        <i data-feather="shield" class="me-1"></i>Build Fund
+                    </a>
+                    {% endif %}
+                    <button class="btn btn-outline-secondary btn-sm" onclick="markAsConsidered(this)">
+                        <i data-feather="check" class="me-1"></i>Mark as Considered
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if medium_suggestions %}
+    <div class="col-12 mb-3">
+        <h4 class="text-info">
+            <i data-feather="trending-up" class="me-2"></i>
+            Medium Priority Opportunities
+        </h4>
+        <hr>
+    </div>
+
+    {% for suggestion in medium_suggestions %}
+    <div class="col-lg-6 mb-4">
+        <div class="card border-info">
+            <div class="card-header bg-info text-dark d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    {% if suggestion.type == 'investment' %}
+                    <i data-feather="trending-up" class="me-2"></i>
+                    {% else %}
+                    <i data-feather="info" class="me-2"></i>
+                    {% endif %}
+                    {{ suggestion.title }}
+                </h6>
+                <span class="badge bg-dark">Medium Priority</span>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ suggestion.description }}</p>
+                <div class="alert alert-info">
+                    <i data-feather="lightbulb" class="me-2"></i>
+                    <strong>Suggestion:</strong> {{ suggestion.action }}
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex gap-2">
+                    {% if suggestion.type == 'investment' %}
+                    <a href="{{ url_for('add_emi') }}" class="btn btn-info btn-sm">
+                        <i data-feather="plus" class="me-1"></i>Add SIP
+                    </a>
+                    {% endif %}
+                    <button class="btn btn-outline-secondary btn-sm" onclick="showInvestmentOptions()">
+                        <i data-feather="external-link" class="me-1"></i>Learn More
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if low_suggestions %}
+    <div class="col-12 mb-3">
+        <h4 class="text-secondary">
+            <i data-feather="info" class="me-2"></i>
+            Additional Recommendations
+        </h4>
+        <hr>
+    </div>
+
+    {% for suggestion in low_suggestions %}
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i data-feather="info" class="me-2"></i>
+                    {{ suggestion.title }}
+                </h6>
+                <span class="badge bg-secondary">Low Priority</span>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ suggestion.description }}</p>
+                <div class="alert alert-light">
+                    <i data-feather="arrow-right" class="me-2"></i>
+                    <strong>Consider:</strong> {{ suggestion.action }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Financial Health Score -->
+    <div class="col-12 mt-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i data-feather="activity" class="me-2"></i>
+                    Financial Health Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            {% set critical_count = critical_suggestions|length %}
+                            <i data-feather="alert-triangle" class="{% if critical_count > 0 %}text-danger{% else %}text-success{% endif %} mb-2" style="width: 2rem; height: 2rem;"></i>
+                            <h4 class="{% if critical_count > 0 %}text-danger{% else %}text-success{% endif %}">{{ critical_count }}</h4>
+                            <small class="text-muted">Critical Issues</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <i data-feather="trending-up" class="text-warning mb-2" style="width: 2rem; height: 2rem;"></i>
+                            <h4 class="text-warning">{{ high_suggestions|length }}</h4>
+                            <small class="text-muted">Growth Opportunities</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <i data-feather="target" class="text-info mb-2" style="width: 2rem; height: 2rem;"></i>
+                            <h4 class="text-info">{{ medium_suggestions|length }}</h4>
+                            <small class="text-muted">Investment Options</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            {% set health_score = ((4 - critical_count - (high_suggestions|length * 0.5)) / 4 * 100) | round %}
+                            <i data-feather="heart" class="{% if health_score >= 80 %}text-success{% elif health_score >= 60 %}text-warning{% else %}text-danger{% endif %} mb-2" style="width: 2rem; height: 2rem;"></i>
+                            <h4 class="{% if health_score >= 80 %}text-success{% elif health_score >= 60 %}text-warning{% else %}text-danger{% endif %}">{{ health_score }}%</h4>
+                            <small class="text-muted">Health Score</small>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if health_score >= 80 %}
+                <div class="alert alert-success text-center">
+                    <i data-feather="check-circle" class="me-2"></i>
+                    <strong>Excellent!</strong> Your financial health is in great shape. Keep following the suggestions to maintain this status.
+                </div>
+                {% elif health_score >= 60 %}
+                <div class="alert alert-warning text-center">
+                    <i data-feather="alert-circle" class="me-2"></i>
+                    <strong>Good Progress!</strong> Focus on high-priority suggestions to improve your financial health further.
+                </div>
+                {% else %}
+                <div class="alert alert-danger text-center">
+                    <i data-feather="alert-triangle" class="me-2"></i>
+                    <strong>Needs Attention!</strong> Please address critical issues immediately to improve your financial stability.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- No Suggestions -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i data-feather="check-circle" style="width: 4rem; height: 4rem;" class="text-success mb-4"></i>
+                <h4 class="text-success mb-3">All Optimized!</h4>
+                <p class="text-muted mb-4">
+                    Your finances are well-managed. No immediate suggestions at this time.
+                </p>
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="alert alert-info">
+                            <i data-feather="lightbulb" class="me-2"></i>
+                            <strong>Keep it up!</strong> Continue monitoring your accounts and maintaining good financial habits.
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+                        <i data-feather="home" class="me-2"></i>Back to Dashboard
+                    </a>
+                    <a href="{{ url_for('add_transaction') }}" class="btn btn-outline-secondary">
+                        <i data-feather="plus" class="me-2"></i>Add Transaction
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Investment Options Modal -->
+<div class="modal fade" id="investmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i data-feather="trending-up" class="me-2"></i>Investment Options
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i data-feather="pie-chart" class="me-2 text-primary"></i>
+                                    Mutual Fund SIP
+                                </h6>
+                                <p class="card-text small">Systematic Investment Plan for long-term wealth creation through diversified mutual funds.</p>
+                                <ul class="list-unstyled small">
+                                    <li><i data-feather="check" class="me-1 text-success"></i> Professional management</li>
+                                    <li><i data-feather="check" class="me-1 text-success"></i> Rupee cost averaging</li>
+                                    <li><i data-feather="check" class="me-1 text-success"></i> High liquidity</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i data-feather="shield" class="me-2 text-success"></i>
+                                    Fixed Deposits
+                                </h6>
+                                <p class="card-text small">Safe investment option with guaranteed returns and capital protection.</p>
+                                <ul class="list-unstyled small">
+                                    <li><i data-feather="check" class="me-1 text-success"></i> Capital protection</li>
+                                    <li><i data-feather="check" class="me-1 text-success"></i> Guaranteed returns</li>
+                                    <li><i data-feather="check" class="me-1 text-success"></i> Tax benefits (ELSS)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i data-feather="trending-up" class="me-2 text-warning"></i>
+                                    Direct Equity
+                                </h6>
+                                <p class="card-text small">Direct stock investments for potentially higher returns with higher risk.</p>
+                                <ul class="list-unstyled small">
+                                    <li><i data-feather="check" class="me-1 text-success"></i> High growth potential</li>
+                                    <li><i data-feather="check" class="me-1 text-success"></i> Direct ownership</li>
+                                    <li><i data-feather="alert-triangle" class="me-1 text-warning"></i> Higher risk</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i data-feather="home" class="me-2 text-info"></i>
+                                    Real Estate
+                                </h6>
+                                <p class="card-text small">Property investment for long-term appreciation and rental income.</p>
+                                <ul class="list-unstyled small">
+                                    <li><i data-feather="check" class="me-1 text-success"></i> Tangible asset</li>
+                                    <li><i data-feather="check" class="me-1 text-success"></i> Rental income</li>
+                                    <li><i data-feather="alert-triangle" class="me-1 text-warning"></i> High capital requirement</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{{ url_for('add_emi') }}" class="btn btn-primary">Start SIP</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function markAsConsidered(button) {
+    const card = button.closest('.card');
+    card.style.opacity = '0.6';
+    button.innerHTML = '<i data-feather="check" class="me-1"></i>Considered';
+    button.disabled = true;
+    button.classList.remove('btn-outline-secondary');
+    button.classList.add('btn-success');
+    feather.replace();
+    
+    // Show toast notification
+    showToast('Suggestion marked as considered', 'success');
+}
+
+function showInvestmentOptions() {
+    const modal = new bootstrap.Modal(document.getElementById('investmentModal'));
+    modal.show();
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type} border-0 position-fixed top-0 end-0 m-3`;
+    toast.style.zIndex = '1051';
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <i data-feather="check" class="me-2"></i>
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    feather.replace();
+    
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    // Remove toast element after it's hidden
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    });
+}
+
+// Auto-refresh suggestions every 10 minutes
+setInterval(function() {
+    if (window.location.pathname === '/suggestions') {
+        // Add a small indicator that suggestions are being refreshed
+        const refreshBtn = document.querySelector('[onclick="location.reload()"]');
+        if (refreshBtn) {
+            const originalHtml = refreshBtn.innerHTML;
+            refreshBtn.innerHTML = '<div class="spinner-border spinner-border-sm me-1" role="status"></div>Updating...';
+            
+            setTimeout(() => {
+                refreshBtn.innerHTML = originalHtml;
+                feather.replace();
+            }, 2000);
+        }
+    }
+}, 600000); // 10 minutes
+
+// Initialize tooltips for better UX
+document.addEventListener('DOMContentLoaded', function() {
+    // Add tooltips to priority badges
+    const priorityBadges = document.querySelectorAll('.badge');
+    priorityBadges.forEach(badge => {
+        if (badge.textContent.includes('Critical')) {
+            badge.title = 'Requires immediate action to avoid financial issues';
+        } else if (badge.textContent.includes('High Priority')) {
+            badge.title = 'Important for improving financial health';
+        } else if (badge.textContent.includes('Medium Priority')) {
+            badge.title = 'Good opportunities for financial growth';
+        } else if (badge.textContent.includes('Low Priority')) {
+            badge.title = 'Optional improvements for optimization';
+        }
+    });
+    
+    // Initialize Bootstrap tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

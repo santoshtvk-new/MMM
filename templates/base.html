@@ -6,8 +6,10 @@
     <title>MMM | Secure Financial Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Lucide Icons (Optional for better visual) -->
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
@@ -16,9 +18,12 @@
             <div class="logo">MMM Secure</div>
             <nav class="nav-links">
                 <a href="{{ url_for('dashboard') }}"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
-                <a href="{{ url_for('add_transaction') }}"><i data-lucide="plus-circle"></i> <span>Add Transaction</span></a>
                 <a href="{{ url_for('add_account') }}"><i data-lucide="wallet"></i> <span>Add Account</span></a>
-                <a href="{{ url_for('logout') }}"><i data-lucide="lock"></i> <span>Lock</span></a>
+                <a href="{{ url_for('add_transaction') }}"><i data-lucide="plus-circle"></i> <span>Add Transaction</span></a>
+                <a href="{{ url_for('add_emi') }}"><i data-lucide="repeat"></i> <span>Add EMI/Loan</span></a>
+                <a href="{{ url_for('upload_csv') }}"><i data-lucide="upload-cloud"></i> <span>Bulk Upload</span></a>
+                <a href="{{ url_for('profile') }}"><i data-lucide="settings"></i> <span>Settings</span></a>
+                <a href="{{ url_for('logout') }}"><i data-lucide="lock"></i> <span style="color: var(--error-red);">Lock</span></a>
             </nav>
         </header>
         {% endif %}

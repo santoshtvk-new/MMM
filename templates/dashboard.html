@@ -2,37 +2,60 @@
 
 {% block content %}
 <div class="container">
-    <h2 style="margin-bottom: 30px;">Your Financial Dashboard</h2>
+    <h2 style="margin-bottom: 5px;">Your Financial Dashboard</h2>
+    <p style="color: var(--text-gray); margin-bottom: 30px;">
+        Financial Cycle: <strong>{{ start_date }} - {{ end_date }}</strong>
+    </p>
 
     <div class="dashboard-grid">
         <!-- Total Wealth Card -->
         <div class="card glass">
-            <div class="card-title">TOTAL WEALTH (CONSOLIDATED)</div>
+            <div class="card-title">TOTAL WEALTH</div>
             <div class="card-value">₹{{ "{:,.2f}".format(total_wealth) }}</div>
         </div>
 
-        <!-- Alerts & Alerts -->
+        <!-- Alerts -->
         {% if alerts %}
         <div class="card glass" style="border-left: 4px solid var(--error-red);">
-            <div class="card-title" style="color: var(--error-red);">DEDUCTION ALERTS (DUE TOMORROW)</div>
+            <div class="card-title" style="color: var(--error-red);">DEDUCTION ALERTS</div>
             {% for alert in alerts %}
             <p style="font-size: 0.9rem; margin-top: 10px;">
-                <strong>{{ alert.emi }}</strong> requires ₹{{ "{:,.2f}".format(alert.amount) }} from <em>{{ alert.account }}</em>. 
-                Shortage: <span style="color: var(--error-red);">₹{{ "{:,.2f}".format(alert.shortage) }}</span>
+                <strong>{{ alert.emi }}</strong> requires ₹{{ "{:,.2f}".format(alert.amount) }} from {{ alert.account }}.
             </p>
             {% endfor %}
         </div>
         {% endif %}
 
-        <!-- Intelligent Suggestions -->
-        {% if suggestions %}
-        <div class="card glass" style="border-left: 4px solid var(--emerald-green);">
-            <div class="card-title" style="color: var(--emerald-green);">INTELLIGENT SUGGESTIONS</div>
-            {% for suggestion in suggestions %}
-            <p style="font-size: 0.9rem; margin-top: 10px;">
-                {{ suggestion }}
-            </p>
-            {% endfor %}
+        <!-- Expenditures Chart Card -->
+        <div class="card glass">
+            <div class="card-title">MONTHLY EXPENDITURE BREAKDOWN</div>
+            <canvas id="categoryChart" style="max-height: 200px; margin-top: 15px;"></canvas>
+            {% if not category_spending %}
+            <p style="text-align: center; color: var(--text-gray); margin-top: 20px; font-size: 0.8rem;">No spending recorded in this cycle.</p>
+            {% endif %}
+        </div>
+
+        <!-- Loan Progress Card -->
+        {% if loan_progress %}
+        <div class="card glass" style="grid-column: span 2;">
+            <div class="card-title">LOAN & CREDIT CARD REDEMPTION</div>
+            <div style="margin-top: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                {% for loan in loan_progress %}
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 8px;">
+                        <span>{{ loan.name }}</span>
+                        <span>{{ loan.percent }}% Paid</span>
+                    </div>
+                    <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
+                        <div style="width: {{ loan.percent }}%; height: 100%; background: var(--emerald-green); transition: width 0.5s ease-in-out;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-gray); margin-top: 5px;">
+                        <span>Paid: ₹{{ "{:,.0f}".format(loan.paid) }}</span>
+                        <span>Pending: ₹{{ "{:,.0f}".format(loan.pending) }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
         {% endif %}
     </div>
@@ -99,5 +122,40 @@
             </form>
         </div>
     </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const data = {{ category_spending | tojson }};
+            
+            if (Object.keys(data).length > 0) {
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            data: Object.values(data),
+                            backgroundColor: [
+                                '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'
+                            ],
+                            borderWidth: 0,
+                            hoverOffset: 10
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: '#94a3b8', font: { family: 'Poppins' } }
+                            }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            }
+        });
+    </script>
 </div>
 {% endblock %}

@@ -36,6 +36,26 @@
         </div>
 
         <div class="form-group">
+            <label>Transaction Date</label>
+            <input type="date" name="date" required value="{{ today }}">
+        </div>
+
+        <div class="form-group">
+            <label>Link to Loan/EMI (Optional for tracking)</label>
+            <select name="emi_id">
+                <option value="">None (General Expense)</option>
+                {% for acc in accounts %}
+                    {% for emi in acc.emis %}
+                    <option value="{{ emi.id }}">{{ emi.decrypt_all(session.get('decryption_key')).name }} ({{ acc.name }})</option>
+                    {% endfor %}
+                {% endfor %}
+            </select>
+            <p style="font-size: 0.7rem; color: var(--text-gray); margin-top: 5px;">
+                Linking a transaction will update the "Paid vs Pending" graph for that loan.
+            </p>
+        </div>
+
+        <div class="form-group">
             <label>Description (e.g. Rent, HDFC Credit Card, Coffee)</label>
             <input type="text" name="description" required placeholder="Description">
         </div>

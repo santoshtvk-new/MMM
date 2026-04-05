@@ -39,6 +39,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email_hash = db.Column(db.String(128), unique=True, nullable=False) # For lookup
     salt = db.Column(db.LargeBinary(16), nullable=False) # For key derivation
+    salary_date = db.Column(db.Integer, default=1) # Day of month for financial cycle
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -79,6 +80,7 @@ class Transaction(db.Model):
     is_transfer = db.Column(db.Boolean, default=False)
     
     date = db.Column(db.DateTime, default=datetime.utcnow)
+    emi_id = db.Column(db.Integer, db.ForeignKey('emi.id'), nullable=True) # Linked loan for progress tracking
 
     def decrypt_all(self, key):
         self.amount = float(EncryptionService.decrypt(self.amount_enc, key))
@@ -98,16 +100,37 @@ class EMI(db.Model):
     type_enc = db.Column(db.Text, nullable=False) # loan, credit_card, mf
     remaining_months_enc = db.Column(db.Text, nullable=True)
     
+    # Frequency and Scheduling
+    frequency = db.Column(db.String(20), default='monthly') # monthly, yearly
+    yearly_month = db.Column(db.Integer, nullable=True) # 1-12 for yearly frequency
+    
+    # Loan Principal Tracking
+    total_principal_enc = db.Column(db.Text, nullable=True)
+    total_tenure_enc = db.Column(db.Text, nullable=True) # Total EMIs
+    
+    # Visibility and Status
+    show_on_dashboard = db.Column(db.Boolean, default=True)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    linked_transactions = db.relationship('Transaction', backref='linked_loan', lazy=True)
 
     def decrypt_all(self, key):
         self.name = EncryptionService.decrypt(self.name_enc, key)
         self.amount = float(EncryptionService.decrypt(self.amount_enc, key))
         self.due_date = int(EncryptionService.decrypt(self.due_date_enc, key))
         self.type = EncryptionService.decrypt(self.type_enc, key)
+        
         rem = EncryptionService.decrypt(self.remaining_months_enc, key)
         self.remaining_months = int(rem) if rem and rem != '[Decryption Error]' else None
+        
+        tp = EncryptionService.decrypt(self.total_principal_enc, key)
+        self.total_principal = float(tp) if tp and tp != '[Decryption Error]' else 0.0
+        
+        tt = EncryptionService.decrypt(self.total_tenure_enc, key)
+        self.total_tenure = int(tt) if tt and tt != '[Decryption Error]' else 0
+        
         return self
 
 class Expense(db.Model):

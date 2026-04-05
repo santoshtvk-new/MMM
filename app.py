@@ -3,7 +3,6 @@ import logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail
-from flask_migrate import Migrate
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -17,7 +16,8 @@ app = Flask(__name__)
 
 # Basic Config
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-dev-secret-key-change-it')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///mmm_secure.db')
+db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance', 'mmm_secure.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Mail Config (as requested by USER)
@@ -31,7 +31,6 @@ app.config['MAIL_DEFAULT_SENDER'] = 'santoshtvk@pynfinity.com'
 # Initialize Extensions
 db = SQLAlchemy(app)
 mail = Mail(app)
-migrate = Migrate(app, db)
 
 # Import routes after app and db creation
 from routes import *

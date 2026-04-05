@@ -30,18 +30,56 @@
         </div>
 
         <div class="form-group">
+            <label>Frequency</label>
+            <select name="frequency" id="freq_select" onchange="toggleYearlyMonth()">
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+            </select>
+        </div>
+
+        <div id="yearly_month_group" class="form-group" style="display: none;">
+            <label>Month of Deduction (1-12)</label>
+            <input type="number" min="1" max="12" name="yearly_month" placeholder="1 for Jan, 12 for Dec">
+        </div>
+
+        <div class="form-group">
             <label>Type</label>
             <select name="type" required>
                 <option value="Loan">Loan EMI</option>
                 <option value="Credit Card">Credit Card Due</option>
                 <option value="MF">Mutual Fund SIP</option>
+                <option value="Other">Other Recurring</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label>Remaining Months (Optional)</label>
-            <input type="number" name="remaining_months" placeholder="Enter number of months left">
+            <label>Total Loan Principal (₹) [For Graphing]</label>
+            <input type="number" step="0.01" name="total_principal" placeholder="Total Loan Amount (e.g. 500000)">
         </div>
+
+        <div class="form-group">
+            <label>Total Tenure (Number of EMIs)</label>
+            <input type="number" name="total_tenure" placeholder="e.g. 60 months">
+        </div>
+
+        <div class="form-group">
+            <label>Show on Dashboard Graph?</label>
+            <div style="display: flex; gap: 20px; align-items: center; margin-top: 5px;">
+                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                    <input type="radio" name="show_on_dashboard" value="true" checked> Yes
+                </label>
+                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                    <input type="radio" name="show_on_dashboard" value="false"> No
+                </label>
+            </div>
+        </div>
+
+        <script>
+            function toggleYearlyMonth() {
+                const freq = document.getElementById('freq_select').value;
+                document.getElementById('yearly_month_group').style.display = (freq === 'yearly') ? 'block' : 'none';
+            }
+        </script>
         
         <button type="submit">Encrypt & Add EMI</button>
     </form>

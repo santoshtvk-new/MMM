@@ -6,6 +6,7 @@ import hashlib
 import os
 import json
 import io
+import csv
 from datetime import datetime, timedelta
 
 # --- Security Helpers ---
@@ -26,8 +27,33 @@ def require_auth(f):
         if 'user_id' not in session or 'decryption_key' not in session:
             flash('Please unlock your account with your Email and Special Key.', 'info')
             return redirect(url_for('lock_screen'))
+        # Guard against stale sessions pointing to deleted users (e.g. after DB reset)
+        if get_current_user() is None:
+            session.clear()
+            flash('Session expired or account not found. Please sign in again.', 'info')
+            return redirect(url_for('lock_screen'))
         return f(*args, **kwargs)
     return decorated_function
+
+def get_cycle_range(user):
+    """Calculate the start and end dates of the current financial cycle"""
+    today = datetime.now()
+    salary_day = user.salary_date or 1
+    
+    if today.day >= salary_day:
+        start_date = datetime(today.year, today.month, salary_day)
+        if today.month == 12:
+            end_date = datetime(today.year + 1, 1, salary_day) - timedelta(seconds=1)
+        else:
+            end_date = datetime(today.year, today.month + 1, salary_day) - timedelta(seconds=1)
+    else:
+        if today.month == 1:
+            start_date = datetime(today.year - 1, 12, salary_day)
+        else:
+            start_date = datetime(today.year, today.month - 1, salary_day)
+        end_date = datetime(today.year, today.month, salary_day) - timedelta(seconds=1)
+    
+    return start_date, end_date
 
 # --- Routes ---
 
@@ -77,43 +103,84 @@ def dashboard():
     accounts = [a.decrypt_all(key) for a in user.accounts]
     total_wealth = sum(a.balance for a in accounts)
     
-    # Get all transactions for all accounts
+    start_date, end_date = get_cycle_range(user)
+    
+    # Aggregations for charts and transactions
     all_transactions = []
+    category_spending = {}
+    
     for account in user.accounts:
         for t in account.transactions:
-            all_transactions.append(t.decrypt_all(key))
+            td = t.decrypt_all(key)
+            all_transactions.append(td)
+            
+            # Aggregate spending for chart (within current cycle)
+            if start_date <= td.date <= end_date and td.type == 'debit' and not td.is_transfer:
+                cat = td.category or 'Other'
+                category_spending[cat] = category_spending.get(cat, 0) + td.amount
+
     all_transactions.sort(key=lambda x: x.date, reverse=True)
     
-    # Alert Logic: Find EMIs due tomorrow with low balance
+    # Loan Progress Data
+    loan_progress = []
+    for account in user.accounts:
+        for emi in account.emis:
+            if emi.show_on_dashboard:
+                e = emi.decrypt_all(key)
+                # Sum linked transactions to find paid principal
+                linked_paid = sum(t.decrypt_all(key).amount for t in emi.linked_transactions if t.type == 'debit')
+                
+                if e.total_principal > 0:
+                    percent = min(100, (linked_paid / e.total_principal) * 100)
+                    loan_progress.append({
+                        'name': e.name,
+                        'total': e.total_principal,
+                        'paid': linked_paid,
+                        'pending': max(0, e.total_principal - linked_paid),
+                        'percent': round(percent, 1)
+                    })
+
+    # Alert Logic
+    # Alert Logic: Find EMIs due tomorrow or future transactions
     alerts = []
-    tomorrow = datetime.now() + timedelta(days=1)
+    today_dt = datetime.now()
+    tomorrow_dt = today_dt + timedelta(days=1)
+    
     for account in user.accounts:
         acc = account.decrypt_all(key)
+        
+        # 1. Check recurring EMIs / SIPs
         for emi in account.emis:
+            if not emi.is_active: continue
             e = emi.decrypt_all(key)
-            if e.due_date == tomorrow.day:
-                if acc.balance < e.amount:
-                    alerts.append({
-                        'account': acc.name,
-                        'emi': e.name,
-                        'amount': e.amount,
-                        'shortage': e.amount - acc.balance
-                    })
-    
-    # Financial Suggestions
-    suggestions = []
-    total_monthly_emi = sum(emi.decrypt_all(key).amount for a in user.accounts for emi in a.emis if emi.is_active)
-    if total_wealth > total_monthly_emi * 6:
-        suggestions.append("You have a healthy emergency fund. Consider investing the surplus in high-yield MFs.")
-    elif total_wealth < total_monthly_emi * 2:
-        suggestions.append("Emergency fund is low. Prioritize savings over non-essential expenses.")
+            
+            # If monthly and tomorrow is the day
+            is_due = False
+            if e.frequency == 'monthly' and e.due_date == tomorrow_dt.day:
+                is_due = True
+            elif e.frequency == 'yearly' and e.yearly_month == tomorrow_dt.month and e.due_date == tomorrow_dt.day:
+                is_due = True
+                
+            if is_due and acc.balance < e.amount:
+                alerts.append({'account': acc.name, 'emi': e.name, 'amount': e.amount, 'shortage': e.amount - acc.balance})
+        
+        # 2. Check individual future-dated transactions for tomorrow
+        for t in account.transactions:
+            td = t.decrypt_all(key)
+            if td.date.date() == tomorrow_dt.date() and td.type == 'debit':
+                if acc.balance < td.amount:
+                    alerts.append({'account': acc.name, 'emi': f"Scheduled: {td.description}", 'amount': td.amount, 'shortage': td.amount - acc.balance})
 
     return render_template('dashboard.html', 
                            accounts=accounts, 
                            total_wealth=total_wealth,
                            recent_transactions=all_transactions[:10],
                            alerts=alerts,
-                           suggestions=suggestions)
+                           category_spending=category_spending,
+                           loan_progress=loan_progress,
+                           start_date=start_date.strftime('%d %b'),
+                           end_date=end_date.strftime('%d %b'),
+                           Account=Account)
 
 @app.route('/add_account', methods=['GET', 'POST'])
 @require_auth
@@ -143,16 +210,19 @@ def add_transaction():
     accounts = [a.decrypt_all(key) for a in user.accounts]
     
     if request.method == 'POST':
-        acc_id = request.form['account_id']
+        acc_id = int(request.form['account_id'])
         amount = float(request.form['amount'])
         t_type = request.form['type'] # credit/debit
         desc = request.form['description']
         cat = request.form.get('category', 'General')
         dest_acc_id = request.form.get('transfer_to_account_id')
+        t_date_str = request.form.get('date')
+        t_date = datetime.strptime(t_date_str, '%Y-%m-%d') if t_date_str else datetime.now()
         
         # Handle account-to-account transfer
         is_transfer = False
         if dest_acc_id and dest_acc_id != "":
+            dest_acc_id = int(dest_acc_id)
             is_transfer = True
             dest_acc = Account.query.get(dest_acc_id)
             # Create credit in dest
@@ -163,7 +233,8 @@ def add_transaction():
                 description_enc=EncryptionService.encrypt(f"Transfer from {Account.query.get(acc_id).decrypt_all(key).name}", key),
                 category_enc=EncryptionService.encrypt('Transfer', key),
                 is_transfer=True,
-                transfer_to_account_id=acc_id
+                transfer_to_account_id=acc_id,
+                date=t_date
             )
             db.session.add(credit_t)
             # Update dest balance
@@ -177,7 +248,8 @@ def add_transaction():
             description_enc=EncryptionService.encrypt(desc, key),
             category_enc=EncryptionService.encrypt(cat, key),
             is_transfer=is_transfer,
-            transfer_to_account_id=dest_acc_id if is_transfer else None
+            transfer_to_account_id=dest_acc_id if is_transfer else None,
+            date=t_date
         )
         db.session.add(new_t)
         
@@ -185,13 +257,24 @@ def add_transaction():
         src_acc = Account.query.get(acc_id)
         current_bal = src_acc.decrypt_all(key).balance
         new_bal = current_bal + amount if t_type == 'credit' else current_bal - amount
+        
+        # Strict Non-Negative Check
+        if new_bal < 0:
+            flash(f"Transaction rejected: Insufficient balance in {src_acc.name}. You cannot have a negative balance.", "danger")
+            return redirect(url_for('add_transaction'))
+            
         src_acc.balance_enc = EncryptionService.encrypt(new_bal, key)
         
+        # Link to EMI if provided
+        emi_id = request.form.get('emi_id')
+        if emi_id:
+            new_t.emi_id = int(emi_id)
+            
         db.session.commit()
         flash('Transaction recorded securely.', 'success')
         return redirect(url_for('dashboard'))
         
-    return render_template('add_transaction.html', accounts=accounts)
+    return render_template('add_transaction.html', accounts=accounts, today=datetime.now().strftime('%Y-%m-%d'))
 
 @app.route('/forgot_key')
 def forgot_key():
@@ -263,12 +346,16 @@ def add_emi():
     
     if request.method == 'POST':
         new_emi = EMI(
-            account_id=request.form['account_id'],
+            account_id=int(request.form['account_id']),
             name_enc=EncryptionService.encrypt(request.form['name'], key),
             amount_enc=EncryptionService.encrypt(request.form['amount'], key),
             due_date_enc=EncryptionService.encrypt(request.form['due_date'], key),
             type_enc=EncryptionService.encrypt(request.form['type'], key),
-            remaining_months_enc=EncryptionService.encrypt(request.form.get('remaining_months'), key)
+            frequency=request.form['frequency'],
+            yearly_month=int(request.form.get('yearly_month')) if request.form.get('yearly_month') else None,
+            total_principal_enc=EncryptionService.encrypt(request.form.get('total_principal', '0'), key),
+            total_tenure_enc=EncryptionService.encrypt(request.form.get('total_tenure', '0'), key),
+            show_on_dashboard=request.form.get('show_on_dashboard') == 'true'
         )
         db.session.add(new_emi)
         db.session.commit()
@@ -286,7 +373,7 @@ def add_expense():
     
     if request.method == 'POST':
         new_exp = Expense(
-            account_id=request.form['account_id'],
+            account_id=int(request.form['account_id']),
             name_enc=EncryptionService.encrypt(request.form['name'], key),
             amount_enc=EncryptionService.encrypt(request.form['amount'], key),
             type_enc=EncryptionService.encrypt(request.form['type'], key),
@@ -297,4 +384,66 @@ def add_expense():
         flash('Mandatory expense recorded securely.', 'success')
         return redirect(url_for('dashboard'))
     
-    return render_template('add_expense.html', accounts=accounts)
+@app.route('/profile', methods=['GET', 'POST'])
+@require_auth
+def profile():
+    user = get_current_user()
+    if request.method == 'POST':
+        user.salary_date = int(request.form['salary_date'])
+        db.session.commit()
+        flash('Profile updated successfully.', 'success')
+        return redirect(url_for('dashboard'))
+    return render_template('profile.html', user=user)
+
+@app.route('/upload_csv', methods=['GET', 'POST'])
+@require_auth
+def upload_csv():
+    user = get_current_user()
+    key = get_decryption_key()
+    accounts = [a.decrypt_all(key) for a in user.accounts]
+    
+    if request.method == 'POST':
+        f = request.files['file']
+        acc_id = int(request.form['account_id'])
+        stream = io.StringIO(f.stream.read().decode("UTF8"), newline=None)
+        reader = csv.DictReader(stream)
+        
+        count = 0
+        for row in reader:
+            try:
+                # Row format: Date, Description, Amount, Type, Category
+                date_str = row['Date']
+                t_date = datetime.strptime(date_str, '%Y-%m-%d')
+                amount = float(row['Amount'])
+                t_type = row['Type'].lower()
+                desc = row['Description']
+                cat = row.get('Category', 'General')
+                
+                # Non-negative check for each entry
+                target_acc = Account.query.get(acc_id)
+                current_bal = target_acc.decrypt_all(key).balance
+                new_bal = current_bal + amount if t_type == 'credit' else current_bal - amount
+                
+                if new_bal < 0:
+                    continue # Skip invalid transactions
+                    
+                new_t = Transaction(
+                    account_id=acc_id,
+                    amount_enc=EncryptionService.encrypt(amount, key),
+                    type_enc=EncryptionService.encrypt(t_type, key),
+                    description_enc=EncryptionService.encrypt(desc, key),
+                    category_enc=EncryptionService.encrypt(cat, key),
+                    date=t_date
+                )
+                db.session.add(new_t)
+                target_acc.balance_enc = EncryptionService.encrypt(new_bal, key)
+                count += 1
+            except Exception as e:
+                print(f"Error parsing row: {e}")
+                continue
+                
+        db.session.commit()
+        flash(f'Successfully imported {count} transactions!', 'success')
+        return redirect(url_for('dashboard'))
+        
+    return render_template('upload.html', accounts=accounts)

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-container glass">
+    <h3 style="margin-bottom: 10px;">Bulk Account Upload (CSV)</h3>
+    <p style="color: var(--text-gray); font-size: 0.85rem; margin-bottom: 25px;">
+        Upload your bank statement in CSV format. Ensure it follows the required column structure.
+    </p>
+    
+    <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 25px; font-family: monospace; font-size: 0.8rem;">
+        <strong>Required CSV Columns:</strong><br>
+        Date, Description, Amount, Type, Category<br>
+        <span style="color: var(--text-gray); font-style: italic;">Example: 2024-04-01, Rent Payment, 15000, debit, Housing</span>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label>Select Account for Import</label>
+            <select name="account_id" required>
+                {% for acc in accounts %}
+                <option value="{{ acc.id }}">{{ acc.name }} (₹{{ "{:,.2f}".format(acc.balance) }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Choose CSV File</label>
+            <input type="file" name="file" accept=".csv" required style="padding: 10px 0;">
+        </div>
+        
+        <button type="submit">Decrypt & Import Transactions</button>
+    </form>
+    
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+        <p style="font-size: 0.8rem; color: var(--text-gray);">
+            <strong>Security Note:</strong> Your CSV is processed locally in memory. All records are encrypted before being saved to the database.
+        </p>
+    </div>
+</div>
+{% endblock %}

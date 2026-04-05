@@ -5,10 +5,12 @@ A premium, all-in-one financial management web application built with **Flask**,
 ## 🌟 Features
 
 - **Zero-Knowledge Security**: Your financial data (accounts, amounts, categories) is encrypted with your **Special Key** before hitting the database.
-- **Smart Dashboard**: Consolidate multiple bank accounts and see your total wealth at a glance.
-- **EMI & SIP Tracking**: Manage loans, credit cards, and Mutual Fund deductions with ease.
-- **Deduction Alerts**: Receive warnings a day before an EMI is due if your linked account has insufficient funds.
-- **Internal Transfer Detection**: Automatically marks "Self-transfers" with a strike-through to avoid double-counting in wealth flow.
+- **📊 Visual Analytics**: Daily and monthly expenditure breakdowns via **Chart.js** integrated directly into the dashboard.
+- **🛣️ Advanced Loan Tracking**: Monitor "Paid vs Pending" principal and tenure with beautiful progress bars linked to specific transactions.
+- **📅 Financial Cycles**: Custom **Salary Date** awareness shifts your dashboard to align with your personal income flow (e.g., 25th of month).
+- **🛡️ Strict Safety**: Enforces a non-negative balance rule to prevent accidental overdraft entries.
+- **Deduction Alerts**: Notifications for EMIs and individually scheduled future transactions due tomorrow.
+- **📤 Bulk CSV Portability**: Import entire bank statements in seconds via a simple CSV mapper.
 - **High-End UI**: Responsive Navy & Emerald theme with glassmorphism and mobile bottom-nav.
 - **Data Portability**: Download your full history as JSON or wipe all your data permanently with one click.
 
